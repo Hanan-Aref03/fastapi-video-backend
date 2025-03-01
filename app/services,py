@@ -1,0 +1,36 @@
+# Services for file handling
+import aiofiles
+import requests
+from pathlib import Path
+import uuid
+
+UPLOAD_DIR = Path("static")
+
+async def save_upload_file(upload_file):
+    """Save uploaded file to the file system."""
+    file_ext = upload_file.filename.split(".")[-1]
+    file_name = f"{uuid.uuid4()}.{file_ext}"  # Unique name
+    file_path = UPLOAD_DIR / file_name
+
+    async with aiofiles.open(file_path, "wb") as buffer:
+        content = await upload_file.read()
+        await buffer.write(content)
+
+    return file_path
+
+async def download_video(url: str):
+    """Download a video from a given URL and save it to the file system."""
+    response = requests.get(url, stream=True)
+    if response.status_code != 200:
+        raise Exception("Failed to download video.")
+
+    file_ext = url.split("?")[0].split(".")[-1]
+    file_name = f"{uuid.uuid4()}.{file_ext}"
+    file_path = UPLOAD_DIR / file_name
+
+    with open(file_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                file.write(chunk)
+
+    return file_path

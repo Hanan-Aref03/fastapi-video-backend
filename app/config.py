@@ -1,0 +1,1 @@
+# Configurations (like storage paths)
